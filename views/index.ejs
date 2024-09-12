@@ -191,7 +191,7 @@
 
    <script src="/socket.io/socket.io.js"></script>
    <script>
-      const el = document.getElementById("messages");
+      const messageContainer = document.getElementById("messages");
       const socket = io();
       const username = prompt("Enter your name:") || "Anonymous";
       socket.emit("newUser", username);
@@ -242,8 +242,8 @@
       // Handle incoming messages and notifications
       function handleIncomingMessage(data) {
          const message = createMessageElement(data);
-         el.appendChild(message);
-         el.scrollTop = el.scrollHeight;
+         messageContainer.appendChild(message);
+         messageContainer.scrollTop = messageContainer.scrollHeight;
       }
 
       socket.on("chatMessage", handleIncomingMessage);
@@ -257,8 +257,8 @@
                const message = document.createElement("div");
                message.classList.add("flex", "items-center", "justify-center", "joined-left");
                message.innerHTML = `<span class="text-[#949597] font-medium text-sm">${data.text}</span>`;
-               el.appendChild(message);
-               el.scrollTop = el.scrollHeight;
+               messageContainer.appendChild(message);
+               messageContainer.scrollTop = messageContainer.scrollHeight;
             }
          });
       });
@@ -267,8 +267,8 @@
          const notification = document.createElement("div");
          notification.classList.add("flex", "items-center", "justify-center", "joined-left");
          notification.innerHTML = `<span class="text-[#949597] font-medium text-sm">${message.text || message}</span>`;
-         el.appendChild(notification);
-         el.scrollTop = el.scrollHeight;
+         messageContainer.appendChild(notification);
+         messageContainer.scrollTop = messageContainer.scrollHeight;
       }
 
       socket.on("userConnected", handleNotification);
