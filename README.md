@@ -20,3 +20,9 @@ git clone https://github.com/yourusername/chatwave.git
 cd chatwave
 npm install
 ```
+
+## Acknowledgments
+- Express.js
+- EJS
+- Socket.IO
+
