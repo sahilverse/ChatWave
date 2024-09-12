@@ -1,6 +1,5 @@
-# ChatWave
+# ChatWave - Socket.io Project
 
-![ChatWave](https://example.com/logo.png)
 
 ChatWave is a real-time chat application built with Node.js, Express, and Socket.IO. Connect with friends, join chat rooms, and enjoy seamless conversations.
 
