@@ -22,6 +22,7 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 const chatHistory = [];
+const chatResetInterval = 600000; // 10 minutes
 io.on("connection", (socket) => {
 
     socket.emit("chatHistory", chatHistory);
@@ -53,6 +54,13 @@ io.on("connection", (socket) => {
         io.emit("userDisconnected", disconnectMessage);
     });
 });
+
+// Reset chat history every 10 minutes
+setInterval(() => {
+    chatHistory.length = 0;
+    io.emit("chatHistoryReset", "Chat history has been reset.");
+
+}, chatResetInterval);
 
 
 server.listen(PORT, () => {

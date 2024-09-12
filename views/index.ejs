@@ -274,6 +274,7 @@
       socket.on("userConnected", handleNotification);
       socket.on("userDisconnected", handleNotification);
       socket.on("welcome", (message) => handleNotification(message));
+      socket.on("chatHistoryReset", (messsage) => handleNotification(message));
 
 
 
