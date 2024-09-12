@@ -2,8 +2,7 @@ const express = require('express');
 const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-const { type } = require('os');
-const { text } = require('stream/consumers');
+
 
 
 const app = express();
@@ -13,7 +12,7 @@ const io = new Server(server);
 
 app.set('view engine', 'ejs');
 app.set('views', path.resolve('./views'));
-const PORT = 9000;
+const PORT = process.env.PORT || 3000;
 
 
 app.use(express.json());
