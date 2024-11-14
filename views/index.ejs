@@ -2,240 +2,560 @@
 <html lang="en">
 
 <head>
-   <meta charset="UTF-8" />
-   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>ChatWave</title>
    <script src="https://cdn.tailwindcss.com"></script>
-
+   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
    <style>
-      .scrollbar-w-2::-webkit-scrollbar {
-         width: 0.25rem;
-         height: 0.25rem;
+      .custom-scrollbar::-webkit-scrollbar {
+         width: 8px;
       }
 
-      .scrollbar-track-blue-lighter::-webkit-scrollbar-track {
-         --bg-opacity: 1;
-         background-color: #f7fafc;
-         background-color: rgba(247, 250, 252, var(--bg-opacity));
+      .custom-scrollbar::-webkit-scrollbar-track {
+         background: #f1f1f1;
       }
 
-      .scrollbar-thumb-blue::-webkit-scrollbar-thumb {
-         --bg-opacity: 1;
-         background-color: #edf2f7;
-         background-color: rgba(237, 242, 247, var(--bg-opacity));
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+         background: #888;
+         border-radius: 4px;
       }
 
-      .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
-         border-radius: 0.25rem;
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+         background: #555;
+      }
+
+      .voice-message-player {
+         display: flex;
+         align-items: center;
+         padding: 8px 12px;
+         border-radius: 18px;
+         background-color: #f0f0f0;
+         width: 190px;
+      }
+
+      .voice-message-player.sent {
+         background-color: #0084ff;
+      }
+
+      .voice-message-player button {
+         background: none;
+         border: none;
+         cursor: pointer;
+         font-size: 24px;
+         color: #606060;
+         margin-right: 8px;
+      }
+
+      .voice-message-player.sent button {
+         color: #ffffff;
+      }
+
+      .voice-message-player .waveform {
+         flex-grow: 1;
+         height: 20px;
+         background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIyMHB4IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFRyYW5zZm9ybT0icm90YXRlKDkwKSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNjY2NjY2MiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2NjY2NjYyIgc3RvcC1vcGFjaXR5PSIwIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmFkKSIgLz4KPC9zdmc+');
+         background-size: 100% 100%;
+         border-radius: 2px;
+      }
+
+      .voice-message-player.sent .waveform {
+         background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIyMHB4IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFRyYW5zZm9ybT0icm90YXRlKDkwKSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmZmZmZmYiIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIgc3RvcC1vcGFjaXR5PSIwIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmFkKSIgLz4KPC9zdmc+');
+      }
+
+      .voice-message-player .duration {
+         margin-left: 8px;
+         font-size: 12px;
+         color: #606060;
+         min-width: 28px;
+      }
+
+      .voice-message-player.sent .duration {
+         color: #ffffff;
+      }
+
+      .video-thumbnail {
+         position: relative;
+         display: inline-block;
+      }
+
+      .video-thumbnail::after {
+         content: '\f04b';
+         font-family: 'Font Awesome 5 Free';
+         font-weight: 900;
+         position: absolute;
+         top: 50%;
+         left: 50%;
+         transform: translate(-50%, -50%);
+         font-size: 24px;
+         color: white;
+         background-color: rgba(0, 0, 0, 0.5);
+         width: 50px;
+         height: 50px;
+         border-radius: 50%;
+         display: flex;
+         align-items: center;
+         justify-content: center;
       }
    </style>
 </head>
 
-<body>
-   <div class="container mx-auto">
-      <div class="flex-1 p:2 sm:p-6 justify-between flex flex-col h-screen">
-         <div class="flex sm:items-center justify-between py-3 border-b-2 border-gray-200">
-            <div class="relative flex items-center space-x-4">
-               <div class="relative">
-                  <span class="absolute text-green-500 right-0 bottom-0">
-                     <svg width="20" height="20">
-                        <circle cx="8" cy="8" r="8" fill="currentColor"></circle>
-                     </svg>
-                  </span>
-                  <img src="https://res.cloudinary.com/dlmvup7x3/image/upload/v1725426900/user_qch3yu.png" alt=""
-                     class="w-10 sm:w-16 h-10 sm:h-16 rounded-full" />
-               </div>
-               <div class="flex flex-col leading-tight">
-                  <div class="text-2xl mt-1 flex items-center">
-                     <span class="text-gray-700 mr-3" id="username"></span>
-                  </div>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+   <div class="w-full max-w-6xl h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden flex">
+      <!-- Sidebar -->
+      <div class="w-1/4 bg-gray-50 border-r">
+         <div class="p-4 border-b">
+            <h1 class="text-2xl font-bold text-gray-800">ChatWave</h1>
+         </div>
+         <div class="p-4">
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">Online Users</h2>
+            <ul id="online-users" class="space-y-2">
+               <!-- Online users will be populated here -->
+            </ul>
+         </div>
+      </div>
 
-               </div>
+      <!-- Chat Area -->
+      <div class="flex-1 flex flex-col">
+         <!-- Chat Header -->
+         <div class="bg-white border-b p-4 flex items-center">
+            <div
+               class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold mr-3">
+               C
             </div>
-            <div class="flex items-center space-x-2">
-               <button type="button"
-                  class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                     class="h-6 w-6">
-                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                  </svg>
-               </button>
-               <button type="button"
-                  class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                     class="h-6 w-6">
-                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
-                     </path>
-                  </svg>
-               </button>
-               <button type="button"
-                  class="inline-flex items-center justify-center rounded-lg border h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                     class="h-6 w-6">
-                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
-                     </path>
-                  </svg>
-               </button>
+            <div>
+               <h2 class="text-lg font-semibold">Chat Room</h2>
+               <p class="text-sm text-gray-500">Online</p>
             </div>
          </div>
-         <div id="messages"
-            class="flex flex-col space-y-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
 
+         <!-- Messages -->
+         <div id="messages" class="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-4"></div>
+
+         <!-- Input Area -->
+         <div class="border-t p-4">
+            <form id="chat-form" class="flex items-center space-x-2">
+               <button type="button" id="voice-record" class="text-gray-500 hover:text-gray-700">
+                  <i class="fas fa-microphone"></i>
+               </button>
+               <input type="file" id="file-input" class="hidden" accept="image/*,video/*">
+               <label for="file-input" class="cursor-pointer text-gray-500 hover:text-gray-700">
+                  <i class="fas fa-paperclip"></i>
+               </label>
+               <input id="chat-input" type="text" placeholder="Type a message..."
+                  class="flex-1 p-2 rounded-full border-2 border-gray-300 focus:outline-none focus:border-blue-500">
+               <button type="submit"
+                  class="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition duration-300">
+                  <i class="fas fa-paper-plane"></i>
+               </button>
+            </form>
          </div>
-         <div class="border-t-2 border-gray-200 px-4 pt-4 mb-2 sm:mb-0">
-            <div class="relative flex">
-               <span class="absolute inset-y-0 flex items-center">
-                  <button type="button"
-                     class="inline-flex items-center justify-center rounded-full h-12 w-12 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        class="h-6 w-6 text-gray-600">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                           d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
-                        </path>
-                     </svg>
-                  </button>
-               </span>
-               <input type="text" placeholder="Write your message!"
-                  class="w-full focus:outline-none focus:placeholder-gray-400 text-gray-600 placeholder-gray-600 pl-12 bg-gray-200 rounded-md py-3"
-                  id="messageBox" />
-               <div class="absolute right-0 items-center inset-y-0 hidden sm:flex">
-                  <button type="button"
-                     class="inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        class="h-6 w-6 text-gray-600">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                           d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
-                        </path>
-                     </svg>
-                  </button>
-                  <button type="button"
-                     class="inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        class="h-6 w-6 text-gray-600">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                           d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
-                        </path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                           d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                     </svg>
-                  </button>
-                  <button type="button"
-                     class="inline-flex items-center justify-center rounded-full h-10 w-10 transition duration-500 ease-in-out text-gray-500 hover:bg-gray-300 focus:outline-none">
-                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        class="h-6 w-6 text-gray-600">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                           d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                        </path>
-                     </svg>
-                  </button>
-                  <button type="submit" id="submitBtn"
-                     class="inline-flex items-center justify-center rounded-lg px-4 py-3 transition duration-500 ease-in-out text-white bg-blue-500 hover:bg-blue-400 focus:outline-none">
-                     <span class="font-bold">Send</span>
-                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                        class="h-6 w-6 ml-2 transform rotate-90">
-                        <path
-                           d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z">
-                        </path>
-                     </svg>
-                  </button>
-               </div>
-            </div>
+      </div>
+   </div>
+
+   <!-- File Preview Modal -->
+   <div id="file-preview" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+      <div class="bg-white p-4 rounded-lg max-w-lg w-full">
+         <h3 class="font-semibold mb-2">Selected File:</h3>
+         <div id="file-preview-content" class="max-h-60 overflow-y-auto mb-4"></div>
+         <div class="flex justify-end space-x-2">
+            <button id="send-file"
+               class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Send</button>
+            <button id="cancel-file"
+               class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300">Cancel</button>
          </div>
+      </div>
+   </div>
+
+   <!-- Voice Preview Modal -->
+   <div id="voice-preview" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+      <div class="bg-white p-4 rounded-lg max-w-lg w-full">
+         <h3 class="font-semibold mb-2">Voice Recording:</h3>
+         <div id="voice-preview-player" class="voice-message-player mb-4">
+            <button class="play-pause"><i class="fas fa-play"></i></button>
+            <div class="waveform"></div>
+            <span class="duration">0:00</span>
+         </div>
+         <div class="flex justify-end space-x-2">
+            <button id="send-voice"
+               class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Send</button>
+            <button id="cancel-voice"
+               class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300">Cancel</button>
+         </div>
+      </div>
+   </div>
+
+   <!-- Fullscreen Media Modal -->
+   <div id="fullscreen-media" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
+      <div class="max-w-4xl max-h-full p-4">
+         <img id="fullscreen-image" class="max-w-full max-h-full object-contain hidden" src="" alt="Fullscreen Image">
+         <video id="fullscreen-video" class="max-w-full max-h-full hidden" controls></video>
       </div>
    </div>
 
    <script src="/socket.io/socket.io.js"></script>
    <script>
-      const messageContainer = document.getElementById("messages");
       const socket = io();
-      const username = prompt("Enter your name:") || "Anonymous";
-      socket.emit("newUser", username);
+      const chatForm = document.getElementById('chat-form');
+      const chatInput = document.getElementById('chat-input');
+      const messagesContainer = document.getElementById('messages');
+      const voiceRecordButton = document.getElementById('voice-record');
+      const fileInput = document.getElementById('file-input');
+      const fullscreenMedia = document.getElementById('fullscreen-media');
+      const fullscreenImage = document.getElementById('fullscreen-image');
+      const fullscreenVideo = document.getElementById('fullscreen-video');
+      const filePreview = document.getElementById('file-preview');
+      const filePreviewContent = document.getElementById('file-preview-content');
+      const sendFileButton = document.getElementById('send-file');
+      const cancelFileButton = document.getElementById('cancel-file');
+      const voicePreview = document.getElementById('voice-preview');
+      const voicePreviewPlayer = document.getElementById('voice-preview-player');
+      const sendVoiceButton = document.getElementById('send-voice');
+      const cancelVoiceButton = document.getElementById('cancel-voice');
+      const onlineUsersList = document.getElementById('online-users');
 
-      const usernameEl = document.getElementById("username");
-      usernameEl.textContent = `Chat Name: ${username}`;
+      let username = prompt('Enter your username:') || 'Anonymous';
+      socket.emit('newUser', username);
 
-      const messageBox = document.getElementById("messageBox");
-      const submitBtn = document.getElementById("submitBtn");
-
-      // Helper function to create message elements
-      function createMessageElement(data) {
-         const message = document.createElement("div");
-         const isOutgoing = data.userId === socket.id;
-         const userClass = isOutgoing ? 'outgoing-message' : 'incoming-message';
-         const bgColor = isOutgoing ? 'bg-blue-600' : 'bg-gray-300';
-         const textColor = isOutgoing ? 'text-white' : 'text-gray-600';
-         const orderClass = isOutgoing ? 'order-1' : 'order-2';
-
-         message.classList.add("chat-message", userClass);
-         message.innerHTML = `
-    <div class="flex items-end ${isOutgoing ? 'justify-end' : ''}">
-      <div class="flex flex-col space-y-2 text-xs max-w-xs mx-2 ${orderClass} ${isOutgoing ? 'items-end' : 'items-start'}">
-        <div>
-          <span class="px-4 py-2 rounded-lg inline-block rounded-${isOutgoing ? 'br' : 'bl'}-none ${bgColor} ${textColor}" title="${data.username}">${data.text}</span>
-        </div>
-      </div>
-      <img src="https://res.cloudinary.com/dlmvup7x3/image/upload/v1725426900/user_qch3yu.png" alt="${data.username}'s profile" class="w-6 h-6 rounded-full ${isOutgoing ? 'order-2' : 'order-1'} cursor-pointer" title="${data.username}">
-    </div>
-  `;
-         return message;
-      }
-
-      // Handle sending messages
-      function handleSendMessage() {
-         const message = messageBox.value.trim();
-         if (message) {
-            socket.emit("chatMessage", message);
-            messageBox.value = "";
+      chatForm.addEventListener('submit', (e) => {
+         e.preventDefault();
+         if (chatInput.value) {
+            socket.emit('chatMessage', chatInput.value);
+            chatInput.value = '';
          }
-      }
-
-      submitBtn.addEventListener("click", handleSendMessage);
-      messageBox.addEventListener("keypress", (e) => {
-         if (e.key === "Enter") handleSendMessage();
       });
 
-      // Handle incoming messages and notifications
-      function handleIncomingMessage(data) {
-         const message = createMessageElement(data);
-         messageContainer.appendChild(message);
-         messageContainer.scrollTop = messageContainer.scrollHeight;
-      }
+      socket.on('chatMessage', (msg) => {
+         appendMessage(msg);
+      });
 
-      socket.on("chatMessage", handleIncomingMessage);
+      socket.on('voiceMessage', (msg) => {
+         appendVoiceMessage(msg);
+      });
 
-      // Handle receiving chat history
+      socket.on('fileMessage', (msg) => {
+         appendFileMessage(msg);
+      });
+
+      socket.on('userConnected', (msg) => {
+         appendSystemMessage(msg.text);
+         updateOnlineUsers(msg.users);
+      });
+
+      socket.on('userDisconnected', (msg) => {
+         appendSystemMessage(msg.text);
+         updateOnlineUsers(msg.users);
+      });
+
+      socket.on('welcome', (msg) => {
+         appendSystemMessage(msg);
+      });
+
       socket.on('chatHistory', (history) => {
-         history.forEach((data) => {
-            if (data.type === 'message') {
-               handleIncomingMessage(data);
-            } else if (data.type === 'join' || data.type === 'leave') {
-               const message = document.createElement("div");
-               message.classList.add("flex", "items-center", "justify-center", "joined-left");
-               message.innerHTML = `<span class="text-[#949597] font-medium text-sm">${data.text}</span>`;
-               messageContainer.appendChild(message);
-               messageContainer.scrollTop = messageContainer.scrollHeight;
-            }
+         messagesContainer.innerHTML = '';
+         history.forEach((msg) => {
+            if (msg.type === 'message') appendMessage(msg);
+            else if (msg.type === 'voice') appendVoiceMessage(msg);
+            else if (msg.type === 'file') appendFileMessage(msg);
+            else if (msg.type === 'join' || msg.type === 'leave') appendSystemMessage(msg.text);
          });
       });
 
-      function handleNotification(message) {
-         const notification = document.createElement("div");
-         notification.classList.add("flex", "items-center", "justify-center", "joined-left");
-         notification.innerHTML = `<span class="text-[#949597] font-medium text-sm">${message.text || message}</span>`;
-         messageContainer.appendChild(notification);
-         messageContainer.scrollTop = messageContainer.scrollHeight;
+      // Listen for chat history updates (e.g., after clearing)
+      socket.on('chatHistoryUpdate', (history) => {
+         messagesContainer.innerHTML = '';
+         history.forEach((msg) => {
+            if (msg.type === 'message') appendMessage(msg);
+            else if (msg.type === 'voice') appendVoiceMessage(msg);
+            else if (msg.type === 'file') appendFileMessage(msg);
+            else if (msg.type === 'join' || msg.type === 'leave') appendSystemMessage(msg.text);
+         });
+      });
+
+
+      function appendMessage(msg) {
+         const messageElement = document.createElement('div');
+         messageElement.classList.add('flex', 'items-start', 'space-x-2', msg.userId === socket.id ? 'justify-end' : 'justify-start');
+
+         const bubbleClass = msg.userId === socket.id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800';
+
+         messageElement.innerHTML = `
+                ${msg.userId !== socket.id ? `<div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">${msg.username[0].toUpperCase()}</div>` : ''}
+                <div class="max-w-xs lg:max-w-md xl:max-w-lg">
+                    ${msg.userId !== socket.id ? `<p class="text-xs text-gray-500 mb-1">${msg.username}</p>` : ''}
+                    <div class="rounded-lg px-4 py-2 ${bubbleClass}">
+                        <p>${msg.text}</p>
+                    </div>
+                </div>
+            `;
+         messagesContainer.appendChild(messageElement);
+         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
 
-      socket.on("userConnected", handleNotification);
-      socket.on("userDisconnected", handleNotification);
-      socket.on("welcome", (message) => handleNotification(message));
-      socket.on("chatHistoryReset", (messsage) => handleNotification(message));
+      function appendVoiceMessage(msg) {
+         const messageElement = document.createElement('div');
+         messageElement.classList.add('flex', 'items-start', 'space-x-2', msg.userId === socket.id ? 'justify-end' : 'justify-start');
 
+         const bubbleClass = msg.userId === socket.id ? 'sent' : '';
 
+         messageElement.innerHTML = `
+                ${msg.userId !== socket.id ? `<div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">${msg.username[0].toUpperCase()}</div>` : ''}
+                <div class="max-w-xs lg:max-w-md xl:max-w-lg">
+                    ${msg.userId !== socket.id ? `<p class="text-xs text-gray-500 mb-1">${msg.username}</p>` : ''}
+                    <div class="voice-message-player ${bubbleClass}" data-src="${msg.audioUrl}">
+                        <button class="play-pause"><i class="fas fa-play"></i></button>
+                        <div class="waveform"></div>
+                        <span class="duration">0:00</span>
+                    </div>
+                </div>
+            `;
+         messagesContainer.appendChild(messageElement);
+         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+         initVoiceMessagePlayer(messageElement.querySelector('.voice-message-player'));
+      }
 
+      function appendFileMessage(msg) {
+         const messageElement = document.createElement('div');
+         messageElement.classList.add('flex', 'items-start', 'space-x-2', msg.userId === socket.id ? 'justify-end' : 'justify-start');
+
+         const bubbleClass = msg.userId === socket.id ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800';
+
+         let fileContent = '';
+         if (msg.fileType.startsWith('image/')) {
+            fileContent = `<img src="${msg.fileUrl}" alt="${msg.fileName}" class="max-w-full h-auto cursor-pointer" style="max-height: 200px;" onclick="showFullscreen('${msg.fileUrl}', 'image')">`;
+         } else if (msg.fileType.startsWith('video/')) {
+            fileContent = `
+                    <div class="video-thumbnail cursor-pointer" onclick="showFullscreen('${msg.fileUrl}', 'video')">
+                        <video src="${msg.fileUrl}" class="max-w-full h-auto" style="max-height: 200px;"></video>
+                    </div>`;
+         } else {
+            fileContent = `<a href="${msg.fileUrl}" target="_blank" class="text-blue-500 hover:underline">${msg.fileName}</a>`;
+         }
+
+         messageElement.innerHTML = `
+                ${msg.userId !== socket.id ? `<div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">${msg.username[0].toUpperCase()}</div>` : ''}
+                <div class="max-w-xs lg:max-w-md xl:max-w-lg">
+                    ${msg.userId !== socket.id ? `<p class="text-xs text-gray-500 mb-1">${msg.username}</p>` : ''}
+                    <div class="rounded-lg px-4 py-2 ${bubbleClass}">
+                        ${fileContent}
+                    </div>
+                </div>
+            `;
+         messagesContainer.appendChild(messageElement);
+         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function appendSystemMessage(text) {
+         const messageElement = document.createElement('div');
+         messageElement.classList.add('text-center', 'text-sm', 'text-gray-500', 'my-2');
+         messageElement.textContent = text;
+         messagesContainer.appendChild(messageElement);
+         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function updateOnlineUsers(users) {
+         onlineUsersList.innerHTML = '';
+         users.forEach(user => {
+            const userElement = document.createElement('li');
+            userElement.classList.add('flex', 'items-center', 'space-x-2');
+            userElement.innerHTML = `
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span>${user}</span>
+                `;
+            onlineUsersList.appendChild(userElement);
+         });
+      }
+
+      function showFullscreen(url, type) {
+         if (type === 'image') {
+            fullscreenImage.src = url;
+            fullscreenImage.classList.remove('hidden');
+            fullscreenVideo.classList.add('hidden');
+         } else if (type === 'video') {
+            fullscreenVideo.src = url;
+            fullscreenVideo.classList.remove('hidden');
+            fullscreenImage.classList.add('hidden');
+         }
+         fullscreenMedia.classList.remove('hidden');
+         fullscreenMedia.classList.add('flex');
+      }
+
+      fullscreenMedia.addEventListener('click', () => {
+         fullscreenMedia.classList.add('hidden');
+         fullscreenMedia.classList.remove('flex');
+         fullscreenImage.classList.add('hidden');
+         fullscreenVideo.classList.add('hidden');
+         fullscreenVideo.pause();
+      });
+
+      // Voice recording functionality
+      let mediaRecorder;
+      let audioChunks = [];
+      let audioBlob;
+
+      voiceRecordButton.addEventListener('click', () => {
+         if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            voiceRecordButton.innerHTML = '<i class="fas fa-microphone"></i>';
+            voiceRecordButton.classList.remove('text-red-500');
+            voiceRecordButton.classList.add('text-gray-500');
+         } else {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+               .then(stream => {
+                  mediaRecorder = new MediaRecorder(stream);
+                  mediaRecorder.start();
+
+                  voiceRecordButton.innerHTML = '<i class="fas fa-stop"></i>';
+                  voiceRecordButton.classList.remove('text-gray-500');
+                  voiceRecordButton.classList.add('text-red-500');
+
+                  audioChunks = [];
+                  mediaRecorder.addEventListener('dataavailable', event => {
+                     audioChunks.push(event.data);
+                  });
+
+                  mediaRecorder.addEventListener('stop', () => {
+                     audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                     const audioUrl = URL.createObjectURL(audioBlob);
+                     initVoiceMessagePlayer(voicePreviewPlayer, audioUrl);
+                     voicePreview.classList.remove('hidden');
+                     voicePreview.classList.add('flex');
+                     stream.getTracks().forEach(track => track.stop());
+                  });
+               });
+         }
+      });
+
+      sendVoiceButton.addEventListener('click', () => {
+         if (audioBlob) {
+            const formData = new FormData();
+            formData.append('file', audioBlob, 'voice-message.webm');
+
+            fetch('/upload', {
+               method: 'POST',
+               body: formData
+            })
+               .then(response => response.json())
+               .then(data => {
+                  socket.emit('voiceMessage', { audioUrl: data.filename });
+                  voicePreview.classList.add('hidden');
+                  voicePreview.classList.remove('flex');
+                  audioBlob = null;
+               });
+         }
+      });
+
+      cancelVoiceButton.addEventListener('click', () => {
+         voicePreview.classList.add('hidden');
+         voicePreview.classList.remove('flex');
+         audioBlob = null;
+      });
+
+      function initVoiceMessagePlayer(playerElement, audioUrl) {
+         const audio = new Audio(audioUrl || playerElement.dataset.src);
+         const playPauseBtn = playerElement.querySelector('.play-pause');
+         const durationEl = playerElement.querySelector('.duration');
+
+         let isPlaying = false;
+
+         playPauseBtn.addEventListener('click', () => {
+            if (isPlaying) {
+               audio.pause();
+            } else {
+               audio.play();
+            }
+         });
+
+         audio.addEventListener('play', () => {
+            isPlaying = true;
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+         });
+
+         audio.addEventListener('pause', () => {
+            isPlaying = false;
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+         });
+
+         audio.addEventListener('timeupdate', () => {
+            durationEl.textContent = formatTime(audio.currentTime);
+         });
+
+         audio.addEventListener('loadedmetadata', () => {
+            durationEl.textContent = formatTime(audio.duration);
+         });
+
+         audio.addEventListener('ended', () => {
+            isPlaying = false;
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            audio.currentTime = 0;
+         });
+      }
+
+      function formatTime(time) {
+         const minutes = Math.floor(time / 60);
+         const seconds = Math.floor(time % 60);
+         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+
+      // File upload functionality
+      let selectedFile;
+
+      fileInput.addEventListener('change', (e) => {
+         selectedFile = e.target.files[0];
+         if (selectedFile) {
+            filePreviewContent.innerHTML = '';
+            if (selectedFile.type.startsWith('image/')) {
+               const img = document.createElement('img');
+               img.src = URL.createObjectURL(selectedFile);
+               img.alt = selectedFile.name;
+               img.className = 'max-w-full h-auto';
+               img.style.maxHeight = '200px';
+               filePreviewContent.appendChild(img);
+            } else if (selectedFile.type.startsWith('video/')) {
+               const video = document.createElement('video');
+               video.src = URL.createObjectURL(selectedFile);
+               video.className = 'max-w-full h-auto';
+               video.style.maxHeight = '200px';
+               video.controls = true;
+               filePreviewContent.appendChild(video);
+            } else {
+               filePreviewContent.textContent = selectedFile.name;
+            }
+            filePreview.classList.remove('hidden');
+            filePreview.classList.add('flex');
+         }
+      });
+
+      sendFileButton.addEventListener('click', () => {
+         if (selectedFile) {
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            fetch('/upload', {
+               method: 'POST',
+               body: formData
+            })
+               .then(response => response.json())
+               .then(data => {
+                  socket.emit('fileMessage', {
+                     fileUrl: data.filename,
+                     fileName: selectedFile.name,
+                     fileType: selectedFile.type
+                  });
+                  filePreview.classList.add('hidden');
+                  filePreview.classList.remove('flex');
+                  fileInput.value = '';
+                  selectedFile = null;
+               });
+         }
+      });
+
+      cancelFileButton.addEventListener('click', () => {
+         filePreview.classList.add('hidden');
+         filePreview.classList.remove('flex');
+         fileInput.value = '';
+         selectedFile = null;
+      });
    </script>
 </body>
 

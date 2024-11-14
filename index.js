@@ -3,69 +3,121 @@ const express = require('express');
 const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-
-
+const multer = require('multer');
+const fs = require('fs');
+const schedule = require('node-schedule');
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
 
+// Set up multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = path.join(__dirname, 'public', 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const timestamp = Date.now();
+        const uniqueSuffix = timestamp + '-' + Math.round(Math.random() * 1E9);
+        cb(null, `${timestamp}-${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+    }
+});
+
+const upload = multer({ storage: storage });
+
+function clearChatsAndUploads() {
+
+    // Clear chat history
+    chatHistory.length = 0;
+
+    // Clear uploads
+    const uploadDir = path.join(__dirname, 'public', 'uploads');
+    fs.readdir(uploadDir, (err, files) => {
+        if (err) throw err;
+        for (const file of files) {
+            fs.unlink(path.join(uploadDir, file), err => {
+                if (err) throw err;
+            });
+        }
+    });
+
+    console.log('Chats and uploads cleared.');
+}
+
+// Schedule chat and upload clearing every 15 days
+schedule.scheduleJob('0 0 */15 * *', clearChatsAndUploads);
 
 app.set('view engine', 'ejs');
 app.set('views', path.resolve('./views'));
-const PORT = process.env.PORT || 3000;
-
-
-app.use(express.json());
+app.use(express.static('public'));
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 app.get('/', (req, res) => {
     res.render('index');
 });
+
+app.post('/upload', upload.single('file'), (req, res) => {
+    if (req.file) {
+        res.json({ filename: '/uploads/' + req.file.filename });
+    } else {
+        res.status(400).send('No file uploaded');
+    }
+});
+
 const chatHistory = [];
-const chatResetInterval = 600000; // 10 minutes
-io.on("connection", (socket) => {
+const onlineUsers = new Set();
 
-    socket.emit("chatHistory", chatHistory);
-    // Handle new user connection
-    socket.on("newUser", (username) => {
-        socket.username = username || "Anonymous";
-        const joinMessage = { text: `${socket.username} joined the chat.`, type: "join" };
+io.on('connection', (socket) => {
+
+    socket.emit('chatHistory', chatHistory);
+
+    socket.on('newUser', (username) => {
+        socket.username = username;
+        onlineUsers.add(username);
+        socket.emit('chatHistory', chatHistory);
+
+        const joinMessage = { text: `${username} joined the chat.`, type: 'join' };
         chatHistory.push(joinMessage);
-
-        // Notify all users (except the sender) about the new user
-        socket.broadcast.emit("userConnected", joinMessage);
-
-
-        // Optionally send a welcome message only to the newly connected user
-        socket.emit("welcome", `Welcome to the chat, ${socket.username}!`);
+        io.emit('userConnected', { text: joinMessage.text, users: Array.from(onlineUsers) });
     });
 
-    // Handle chat message
-    socket.on("chatMessage", (msg) => {
-        const chatMessage = { username: socket.username, text: msg, userId: socket.id, type: "message" };
-        io.emit("chatMessage", chatMessage);
+    socket.on('chatMessage', (msg) => {
+        const chatMessage = { username: socket.username, text: msg, userId: socket.id, type: 'message' };
         chatHistory.push(chatMessage);
+        io.emit('chatMessage', chatMessage);
     });
 
-    // Handle user disconnect
-    socket.on("disconnect", () => {
-        const disconnectMessage = { text: `${socket.username} left the chat.`, type: "leave" };
-        chatHistory.push(disconnectMessage);
-        io.emit("userDisconnected", disconnectMessage);
+    socket.on('voiceMessage', (data) => {
+        const voiceMessage = { username: socket.username, audioUrl: data.audioUrl, userId: socket.id, type: 'voice' };
+        chatHistory.push(voiceMessage);
+        io.emit('voiceMessage', voiceMessage);
+    });
+
+    socket.on('fileMessage', (data) => {
+        const fileMessage = { username: socket.username, fileUrl: data.fileUrl, fileName: data.fileName, fileType: data.fileType, userId: socket.id, type: 'file' };
+        chatHistory.push(fileMessage);
+        io.emit('fileMessage', fileMessage);
+    });
+
+    socket.on('disconnect', () => {
+
+        if (socket.username) {
+            onlineUsers.delete(socket.username);
+            const disconnectMessage = { text: `${socket.username} left the chat.`, type: 'leave' };
+            chatHistory.push(disconnectMessage);
+            io.emit('userDisconnected', { text: disconnectMessage.text, users: Array.from(onlineUsers) });
+        }
+    });
+    socket.on('chatsCleared', () => {
+        socket.broadcast.emit('chatHistory', chatHistory);
     });
 });
 
-// Reset chat history every 10 minutes
-setInterval(() => {
-    chatHistory.length = 0;
-    io.emit("chatHistoryReset", "Chat history has been reset.");
-
-}, chatResetInterval);
-
-
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-
-
