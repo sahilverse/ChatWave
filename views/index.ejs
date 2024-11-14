@@ -239,7 +239,11 @@
 
       socket.on('userConnected', (msg) => {
          appendSystemMessage(msg.text);
+      });
+
+      socket.on('userList', (msg) => {
          updateOnlineUsers(msg.users);
+
       });
 
       socket.on('userDisconnected', (msg) => {
@@ -260,18 +264,6 @@
             else if (msg.type === 'join' || msg.type === 'leave') appendSystemMessage(msg.text);
          });
       });
-
-      // Listen for chat history updates (e.g., after clearing)
-      socket.on('chatHistoryUpdate', (history) => {
-         messagesContainer.innerHTML = '';
-         history.forEach((msg) => {
-            if (msg.type === 'message') appendMessage(msg);
-            else if (msg.type === 'voice') appendVoiceMessage(msg);
-            else if (msg.type === 'file') appendFileMessage(msg);
-            else if (msg.type === 'join' || msg.type === 'leave') appendSystemMessage(msg.text);
-         });
-      });
-
 
       function appendMessage(msg) {
          const messageElement = document.createElement('div');

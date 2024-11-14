@@ -81,8 +81,12 @@ io.on('connection', (socket) => {
         socket.emit('chatHistory', chatHistory);
 
         const joinMessage = { text: `${username} joined the chat.`, type: 'join' };
+
+        socket.emit("welcome", `Welcome to the chat, ${socket.username}!`);
         chatHistory.push(joinMessage);
-        io.emit('userConnected', { text: joinMessage.text, users: Array.from(onlineUsers) });
+        socket.broadcast.emit('userConnected', { text: joinMessage.text });
+
+        io.emit('userList', { users: Array.from(onlineUsers) });
     });
 
     socket.on('chatMessage', (msg) => {
