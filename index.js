@@ -48,7 +48,7 @@ function clearChatsAndUploads() {
     console.log('Chats and uploads cleared.');
 }
 
-// Schedule chat and upload clearing every 15 days
+// Schedule chat and upload clearing 
 schedule.scheduleJob('0 0 */15 * *', clearChatsAndUploads);
 
 app.set('view engine', 'ejs');
